@@ -10,6 +10,16 @@ To start a local development server, run:
 ng serve
 ```
 
+### Verwendung mit Word Web Add-In
+
+Um das Projekt korrekt zu starten, muss dem lokalen Server-Zertifikat vertraut werden. Führe dazu folgenden Befehl aus:
+
+```bash
+ng serve --ssl true --port 4200
+```
+
+Anschließend öffne **Office Word im Web** und lade in der Add-Ins-Pane (`Start → Add-Ins → Weitere Add-Ins → Meinde Add-Ins → Mein Add-In hochladen`) die Datei **manifest.xml** hoch, um das Add-In zu aktivieren.
+
 Once the server is running, open your browser and navigate to `http://localhost:4200/`. The application will automatically reload whenever you modify any of the source files.
 
 ## Code scaffolding
