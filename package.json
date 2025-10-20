@@ -18,7 +18,10 @@
     "@angular/platform-browser-dynamic": "^20.3.6",
     "@angular/router": "^20.3.6",
     "@microsoft/office-js": "^1.1.110",
+    "@primeuix/themes": "^1.2.5",
+    "primeng": "^20.2.0",
     "rxjs": "~7.8.0",
+    "tailwindcss-primeui": "^0.6.1",
     "tslib": "^2.3.0",
     "zone.js": "~0.15.0"
   },
