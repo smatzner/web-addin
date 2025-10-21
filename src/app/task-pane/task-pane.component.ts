@@ -1,9 +1,9 @@
-import {Component, OnInit} from '@angular/core'
-import {Button} from 'primeng/button'
-import {Tab, TabList, TabPanel, TabPanels, Tabs} from 'primeng/tabs'
-import {TableModule} from 'primeng/table'
-import {Role} from '../../domain/role'
-import {RoleService} from '../../service/role.service'
+import { Component, OnInit } from '@angular/core'
+import { Button } from 'primeng/button'
+import { Tab, TabList, TabPanel, TabPanels, Tabs } from 'primeng/tabs'
+import { TableModule } from 'primeng/table'
+import { Role } from '../../domain/role'
+import { RoleService } from '../../service/role.service'
 import { TextBlock } from '../../domain/textBlock'
 import { TextBlockService } from '../../service/text-block.service'
 
@@ -24,13 +24,13 @@ import { TextBlockService } from '../../service/text-block.service'
 })
 export class TaskPaneComponent implements OnInit {
   roles!: Role[]
-  hiddenRoles = new Set<number>()
+  hiddenCCs = new Set<number>()
 
   textBlocks!: TextBlock[]
 
   constructor(
     private roleService: RoleService,
-    private textBlockService: TextBlockService,) {
+    private textBlockService: TextBlockService) {
   }
 
   ngOnInit() {
@@ -38,8 +38,8 @@ export class TaskPaneComponent implements OnInit {
     this.textBlocks = this.textBlockService.getTextBlockData()
   }
 
-  isRoleHidden(role: Role) {
-    return this.hiddenRoles.has(role.id)
+  isRoleHidden(id: number): boolean {
+    return this.hiddenCCs.has(id)
   }
 
   async addRole(role: Role) {
@@ -70,7 +70,7 @@ export class TaskPaneComponent implements OnInit {
   }
 
   async toggleRoleVisibility(role: Role) {
-    const isHidden = this.hiddenRoles.has(role.id)
+    const isHidden = this.hiddenCCs.has(role.id)
 
     await Word.run(async context => {
       const ccs = context.document.contentControls.getByTag(`role:${role.id}`)
@@ -78,13 +78,12 @@ export class TaskPaneComponent implements OnInit {
       await context.sync()
 
       ccs.items.forEach(cc => {
-        if(isHidden){
+        if (isHidden) {
           cc.appearance = Word.ContentControlAppearance.tags
-          this.hiddenRoles.delete(role.id)
-        }
-        else{
+          this.hiddenCCs.delete(role.id)
+        } else {
           cc.appearance = Word.ContentControlAppearance.hidden
-          this.hiddenRoles.add(role.id)
+          this.hiddenCCs.add(role.id)
         }
       })
 
@@ -119,6 +118,28 @@ export class TaskPaneComponent implements OnInit {
         parentCC.delete(true)
         await context.sync()
       }
+    })
+  }
+
+  async toggleTextBlockVisibility(textBlock: TextBlock) {
+    const isHidden = this.hiddenCCs.has(textBlock.id)
+
+    await Word.run(async context => {
+      const ccs = context.document.contentControls.getByTag(`textBlock:${textBlock.id}`)
+      ccs.load('items')
+      await context.sync()
+
+      ccs.items.forEach(cc => {
+        if (isHidden) {
+          cc.appearance = Word.ContentControlAppearance.tags
+          this.hiddenCCs.delete(textBlock.id)
+        } else {
+          cc.appearance = Word.ContentControlAppearance.hidden
+          this.hiddenCCs.add(textBlock.id)
+        }
+      })
+
+      await context.sync()
     })
   }
 }

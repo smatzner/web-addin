@@ -24,10 +24,10 @@
             <td>
               <div class="flex justify-center items-center">
                 <p-button
-                  [icon]="isRoleHidden(r) ? 'pi pi-eye-slash' : 'pi pi-eye'"
+                  [icon]="isRoleHidden(r.id) ? 'pi pi-eye-slash' : 'pi pi-eye'"
                   [rounded]="true"
                   [text]="true"
-                  [severity]="isRoleHidden(r) ? 'danger' : 'success'"
+                  [severity]="isRoleHidden(r.id) ? 'danger' : 'success'"
                   (onClick)="toggleRoleVisibility(r)"
                 />
               </div>
@@ -47,6 +47,11 @@
       <p-table [value]="textBlocks" size="small">
         <ng-template pTemplate="header">
           <tr>
+            <th>
+              <div class="flex justify-center items-center">
+                Anzeigen
+              </div>
+            </th>
             <th>Baustein</th>
             <th></th>
             <th></th>
@@ -54,6 +59,17 @@
         </ng-template>
         <ng-template #body let-b>
           <tr>
+            <td>
+              <div class="flex justify-center items-center">
+                <p-button
+                  [icon]="isRoleHidden(b.id) ? 'pi pi-eye-slash' : 'pi pi-eye'"
+                  [rounded]="true"
+                  [text]="true"
+                  [severity]="isRoleHidden(b.id) ? 'danger' : 'success'"
+                  (onClick)="toggleTextBlockVisibility(b)"
+                />
+              </div>
+            </td>
             <td>{{ b.name }}</td>
             <td>
               <div class="flex gap-1">
