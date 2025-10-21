@@ -9,7 +9,11 @@
       <p-table [value]="roles" size="small">
         <ng-template pTemplate="header">
           <tr>
-            <th>Anzeigen</th>
+            <th>
+              <div class="flex justify-center items-center">
+                Anzeigen
+              </div>
+            </th>
             <th>Rolle</th>
             <th></th>
             <th></th>
@@ -33,6 +37,28 @@
               <div class="flex gap-1">
                 <p-button label="+" (onClick)="addRole(r)" severity="contrast" size="small"/>
                 <p-button label="−" (onClick)="removeRole(r)" severity="contrast" size="small"/>
+              </div>
+            </td>
+          </tr>
+        </ng-template>
+      </p-table>
+    </p-tabpanel>
+    <p-tabpanel value="1">
+      <p-table [value]="textBlocks" size="small">
+        <ng-template pTemplate="header">
+          <tr>
+            <th>Baustein</th>
+            <th></th>
+            <th></th>
+          </tr>
+        </ng-template>
+        <ng-template #body let-b>
+          <tr>
+            <td>{{ b.name }}</td>
+            <td>
+              <div class="flex gap-1">
+                <p-button label="+" (onClick)="addTextBlock(b)" severity="contrast" size="small"/>
+                <p-button label="−" (onClick)="removeTextBlock(b)" severity="contrast" size="small"/>
               </div>
             </td>
           </tr>

@@ -4,6 +4,8 @@ import {Tab, TabList, TabPanel, TabPanels, Tabs} from 'primeng/tabs'
 import {TableModule} from 'primeng/table'
 import {Role} from '../../domain/role'
 import {RoleService} from '../../service/role.service'
+import { TextBlock } from '../../domain/textBlock'
+import { TextBlockService } from '../../service/text-block.service'
 
 @Component({
   selector: 'app-task-pane',
@@ -24,11 +26,16 @@ export class TaskPaneComponent implements OnInit {
   roles!: Role[]
   hiddenRoles = new Set<number>()
 
-  constructor(private roleService: RoleService) {
+  textBlocks!: TextBlock[]
+
+  constructor(
+    private roleService: RoleService,
+    private textBlockService: TextBlockService,) {
   }
 
   ngOnInit() {
     this.roles = this.roleService.getRoleData()
+    this.textBlocks = this.textBlockService.getTextBlockData()
   }
 
   isRoleHidden(role: Role) {
@@ -85,15 +92,31 @@ export class TaskPaneComponent implements OnInit {
     })
   }
 
-  async asdf(role: Role) {
+  async addTextBlock(textBlock: TextBlock) {
     await Word.run(async context => {
+      const sel = context.document.getSelection()
+
+      const range = sel.insertText(textBlock.content, Word.InsertLocation.replace)
+
+      const cc = range.insertContentControl()
+      cc.tag = `textBlock:${textBlock.id}`
+      cc.title = textBlock.name
+      cc.appearance = Word.ContentControlAppearance.tags
+
+      await context.sync()
+    })
+  }
+
+  async removeTextBlock(textBlock: TextBlock) {
+    await Word.run(async context => {
+      debugger
       const range = context.document.getSelection()
       const parentCC = range.parentContentControlOrNullObject
       parentCC.load(['tag', 'id'])
       await context.sync()
 
-      if (!parentCC.isNullObject && parentCC.tag === `role:${role.id}`) {
-        parentCC.appearance = Word.ContentControlAppearance.hidden
+      if (!parentCC.isNullObject && parentCC.tag === `textBlock:${textBlock.id}`) {
+        parentCC.delete(true)
         await context.sync()
       }
     })
