@@ -36,6 +36,14 @@ export class TaskPaneComponent implements OnInit {
   ngOnInit() {
     this.roles = this.roleService.getRoleData()
     this.textBlocks = this.textBlockService.getTextBlockData()
+
+    Office.onReady().then(() => {
+
+      if (Office.context.host === Office.HostType.Word) {
+        Office.context.document.settings.set('Office.AutoShowTaskpaneWithDocument', true)
+        Office.context.document.settings.saveAsync()
+      }
+    })
   }
 
   isRoleHidden(id: number): boolean {
