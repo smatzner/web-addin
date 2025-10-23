@@ -1,4 +1,4 @@
-import { Component, OnInit } from '@angular/core'
+import { Component, OnInit, inject } from '@angular/core'
 import { Button } from 'primeng/button'
 import { Tab, TabList, TabPanel, TabPanels, Tabs } from 'primeng/tabs'
 import { TableModule } from 'primeng/table'
@@ -23,18 +23,18 @@ import { TextBlockService } from '../../service/text-block.service'
   standalone: true,
 })
 export class TaskPaneComponent implements OnInit {
-  roles!: Role[]
+  private readonly roleService = inject(RoleService)
+  private readonly textBlockService = inject(TextBlockService)
+
+  readonly roles = this.roleService.roles
   hiddenCCs = new Set<number>()
 
   textBlocks!: TextBlock[]
 
-  constructor(
-    private roleService: RoleService,
-    private textBlockService: TextBlockService) {
-  }
+  constructor() {}
 
   ngOnInit() {
-    this.roles = this.roleService.getRoleData()
+    void this.roleService.load()
     this.textBlocks = this.textBlockService.getTextBlockData()
 
     Office.onReady().then(() => {
