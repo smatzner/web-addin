@@ -4,8 +4,8 @@ import { Tab, TabList, TabPanel, TabPanels, Tabs } from 'primeng/tabs'
 import { TableModule } from 'primeng/table'
 import { Role } from '../../domain/role'
 import { RoleService } from '../../service/role.service'
-import { TextBlock } from '../../domain/textBlock'
-import { TextBlockService } from '../../service/text-block.service'
+
+type RoleCategory = 'role' | 'baustein' | 'betriebsform'
 
 @Component({
   selector: 'app-task-pane',
@@ -24,18 +24,16 @@ import { TextBlockService } from '../../service/text-block.service'
 })
 export class TaskPaneComponent implements OnInit {
   private readonly roleService = inject(RoleService)
-  private readonly textBlockService = inject(TextBlockService)
 
-  readonly roles = this.roleService.roles
-  hiddenCCs = new Set<number>()
-
-  textBlocks!: TextBlock[]
+  readonly mitarbeiterRoles = this.roleService.mitarbeiterRoles
+  readonly bausteinRoles = this.roleService.bausteinRoles
+  readonly betriebsformArtenRoles = this.roleService.betriebsformArtenRoles
+  hiddenCCs = new Set<string>()
 
   constructor() {}
 
   ngOnInit() {
     void this.roleService.load()
-    this.textBlocks = this.textBlockService.getTextBlockData()
 
     Office.onReady().then(() => {
 
@@ -46,16 +44,26 @@ export class TaskPaneComponent implements OnInit {
     })
   }
 
-  isRoleHidden(id: number): boolean {
-    return this.hiddenCCs.has(id)
+  isRoleHidden(id: number, category: RoleCategory = 'role'): boolean {
+    return this.hiddenCCs.has(this.roleTag(category, id))
   }
 
-  async addRole(role: Role) {
+  async addRole(role: Role, category: RoleCategory = 'role') {
+    const tag = this.roleTag(category, role.id)
+
     await Word.run(async context => {
       const sel = context.document.getSelection()
-      const cc = sel.insertContentControl()
 
-      cc.tag = `role:${role.id}`
+      let cc: Word.ContentControl
+
+      if (category === 'role') {
+        cc = sel.insertContentControl()
+      } else {
+        const range = sel.insertText(this.resolveRoleContent(role), Word.InsertLocation.replace)
+        cc = range.insertContentControl()
+      }
+
+      cc.tag = tag
       cc.title = role.name
       cc.appearance = Word.ContentControlAppearance.tags
 
@@ -63,35 +71,38 @@ export class TaskPaneComponent implements OnInit {
     })
   }
 
-  async removeRole(role: Role) {
+  async removeRole(role: Role, category: RoleCategory = 'role') {
+    const tag = this.roleTag(category, role.id)
+
     await Word.run(async context => {
       const range = context.document.getSelection()
       const parentCC = range.parentContentControlOrNullObject
       parentCC.load(['tag', 'id'])
       await context.sync()
 
-      if (!parentCC.isNullObject && parentCC.tag === `role:${role.id}`) {
+      if (!parentCC.isNullObject && parentCC.tag === tag) {
         parentCC.delete(true)
         await context.sync()
       }
     })
   }
 
-  async toggleRoleVisibility(role: Role) {
-    const isHidden = this.hiddenCCs.has(role.id)
+  async toggleRoleVisibility(role: Role, category: RoleCategory = 'role') {
+    const tag = this.roleTag(category, role.id)
+    const isHidden = this.hiddenCCs.has(tag)
 
     await Word.run(async context => {
-      const ccs = context.document.contentControls.getByTag(`role:${role.id}`)
+      const ccs = context.document.contentControls.getByTag(tag)
       ccs.load('items')
       await context.sync()
 
       ccs.items.forEach(cc => {
         if (isHidden) {
           cc.appearance = Word.ContentControlAppearance.tags
-          this.hiddenCCs.delete(role.id)
+          this.hiddenCCs.delete(tag)
         } else {
           cc.appearance = Word.ContentControlAppearance.hidden
-          this.hiddenCCs.add(role.id)
+          this.hiddenCCs.add(tag)
         }
       })
 
@@ -99,55 +110,11 @@ export class TaskPaneComponent implements OnInit {
     })
   }
 
-  async addTextBlock(textBlock: TextBlock) {
-    await Word.run(async context => {
-      const sel = context.document.getSelection()
-
-      const range = sel.insertText(textBlock.content, Word.InsertLocation.replace)
-
-      const cc = range.insertContentControl()
-      cc.tag = `textBlock:${textBlock.id}`
-      cc.title = textBlock.name
-      cc.appearance = Word.ContentControlAppearance.tags
-
-      await context.sync()
-    })
+  private roleTag(category: RoleCategory, id: number): string {
+    return `${category}:${id}`
   }
 
-  async removeTextBlock(textBlock: TextBlock) {
-    await Word.run(async context => {
-      debugger
-      const range = context.document.getSelection()
-      const parentCC = range.parentContentControlOrNullObject
-      parentCC.load(['tag', 'id'])
-      await context.sync()
-
-      if (!parentCC.isNullObject && parentCC.tag === `textBlock:${textBlock.id}`) {
-        parentCC.delete(true)
-        await context.sync()
-      }
-    })
-  }
-
-  async toggleTextBlockVisibility(textBlock: TextBlock) {
-    const isHidden = this.hiddenCCs.has(textBlock.id)
-
-    await Word.run(async context => {
-      const ccs = context.document.contentControls.getByTag(`textBlock:${textBlock.id}`)
-      ccs.load('items')
-      await context.sync()
-
-      ccs.items.forEach(cc => {
-        if (isHidden) {
-          cc.appearance = Word.ContentControlAppearance.tags
-          this.hiddenCCs.delete(textBlock.id)
-        } else {
-          cc.appearance = Word.ContentControlAppearance.hidden
-          this.hiddenCCs.add(textBlock.id)
-        }
-      })
-
-      await context.sync()
-    })
+  private resolveRoleContent(role: Role): string {
+    return role.description?.trim().length ? role.description : role.name
   }
 }

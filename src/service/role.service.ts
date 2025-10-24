@@ -1,7 +1,7 @@
 import { Injectable, computed, signal } from '@angular/core'
 import { HttpClient } from '@angular/common/http'
 import { firstValueFrom } from 'rxjs'
-import { Role } from '../domain/role'
+import { Role, RoleType } from '../domain/role'
 
 @Injectable({ providedIn: 'root' })
 export class RoleService {
@@ -9,6 +9,9 @@ export class RoleService {
 
   private readonly rolesSignal = signal<Role[]>([])
   readonly roles = computed<Role[]>(() => this.rolesSignal())
+  readonly mitarbeiterRoles = this.createRoleFilter(RoleType.Mitarbeiter)
+  readonly bausteinRoles = this.createRoleFilter(RoleType.Baustein)
+  readonly betriebsformArtenRoles = this.createRoleFilter(RoleType.BetriebsformArten)
 
   readonly loading = signal<boolean>(false)
   readonly error = signal<string | null>(null)
@@ -32,5 +35,11 @@ export class RoleService {
     } finally {
       this.loading.set(false)
     }
+  }
+
+  private createRoleFilter(type: RoleType) {
+    return computed<Role[]>(() =>
+      this.rolesSignal().filter(role => (role.type ?? RoleType.Mitarbeiter) === type)
+    )
   }
 }
