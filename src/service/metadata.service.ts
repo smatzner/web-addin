@@ -6,7 +6,7 @@ import { Role } from '../domain/role'
 
 @Injectable({ providedIn: 'root' })
 export class MetadataService {
-  private readonly endpoint = 'http://localhost:8055/RWDBWebService/GetMetadata'
+  private readonly endpoint = 'http://localhost:5184/api/webaddin/GetAllRoles'
 
   readonly loading = signal<boolean>(false)
   readonly error = signal<string | null>(null)
